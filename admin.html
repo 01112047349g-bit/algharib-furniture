@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم متقدمة - مصنع الغريب</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#D4AF37;--black:#070709;--black2:#101012}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--black);color:#eee;font-family:'Cairo',sans-serif;padding:15px}
+.login{max-width:400px;margin:60px auto;background:var(--black2);border:2px solid var(--gold);border-radius:20px;padding:30px;text-align:center}
+.login h1{color:var(--gold);font-size:22px}
+.login input{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#000;color:#fff;margin:10px 0;font-family:'Cairo'}
+.login button{width:100%;padding:12px;background:var(--gold);color:#000;border:none;border-radius:10px;font-weight:900;cursor:pointer;font-family:'Cairo'}
+.panel{display:none;max-width:1450px;margin:auto}
+.header-admin{text-align:center;padding:20px;background:var(--black2);border:1px solid rgba(212,175,55,0.2);border-radius:15px;margin-bottom:20px}
+.header-admin h1{color:var(--gold)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;justify-content:center}
+.tab{padding:10px 16px;background:var(--black2);border:1px solid rgba(212,175,55,0.2);border-radius:20px;color:#aaa;cursor:pointer;font-size:12px;transition:.3s}
+.tab.active{background:var(--gold);color:#000;font-weight:800}
+.section{display:none}
+.section.active{display:block}
+.card{background:var(--black2);border:1px solid rgba(212,175,55,0.15);border-radius:15px;padding:20px;margin-bottom:20px}
+.card h3{color:var(--gold);margin-bottom:15px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:15px}
+.item{background:#000;border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:12px;text-align:center}
+.item img{width:100%;height:160px;object-fit:cover;border-radius:8px;background:#111;margin-bottom:8px;border:1px solid #222}
+.item input,.item textarea, .full-input{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:1px solid #333;background:#111;color:#fff;font-family:'Cairo';font-size:12px}
+.item textarea{height:50px;resize:none}
+.full-input{padding:12px}
+.btn{width:100%;padding:10px;background:var(--gold);color:#000;border:none;border-radius:8px;font-weight:800;cursor:pointer;margin-top:6px;font-family:'Cairo';font-size:12px}
+.btn-danger{background:#ff4444;color:#fff}
+.flex2{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+@media(max-width:700px){.flex2{grid-template-columns:1fr}}
+.note{color:#888;font-size:11px;margin-top:8px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="login" id="loginBox">
+<h1>🔐 لوحة التحكم المتقدمة<br>مصنع الغريب</h1>
+<p style="color:#888;font-size:11px;margin:10px 0">تحكم كامل - 9 أقسام - نصوص - أسعار - أقسام</p>
+<input type="password" id="pass" placeholder="الباسورد">
+<button onclick="checkPass()">دخول</button>
+<p style="color:#555;font-size:10px;margin-top:10px">الباسورد الافتراضي: 1234<br>تقدر تغيره من داخل اللوحة ← تبويب 🔑 تغيير الباسورد</p>
+</div>
+
+<div class="panel" id="panel">
+<div class="header-admin">
+<h1>🪑 لوحة التحكم المتقدمة - 9 أقسام كاملة</h1>
+<p style="color:#888;font-size:12px;margin-top:6px">لوحة التحكم منفصلة عن الموقع - الزائر لا يراها - تدخل لها برابط مباشر فقط - تحكم كامل</p>
+<button onclick="location.reload()" style="margin-top:10px;padding:6px 15px;background:#222;color:#fff;border:1px solid #444;border-radius:8px;cursor:pointer;font-size:11px">خروج</button>
+</div>
+<div class="tabs" id="tabs"></div>
+<div id="sections"></div>
+</div>
+
+<script>
+const data = {
+  hero: {title:"مصنع الغريب للأثاث", subtitle:"فخامة التفصيل .. جودة تدوم لأجيال", desc:"نصمم أحدث موديلات الأثاث المودرن بجودة عالية وأسعار مصنع - شحن لجميع المحافظات"},
+  contacts: {factory:"المنطقة الصناعية الرابعة - مدينة بدر - القاهرة", workshop:"الحي الثامن - مدينة نصر - القاهرة", phone:"01112047349", whatsapp:"01012111519"},
+  social: {fb:"https://www.facebook.com/share/1bTXadNvv8/", ig:"https://www.instagram.com/algharibfurniture", tt:"https://www.tiktok.com/@algharibfurniture.eg", wa:"https://wa.me/201012111519"},
+  categories: [
+    {id:'bedroom', name:'قسم غرف النوم', desc:'مكان راحتك الأساسي', count:6},
+    {id:'kids', name:'قسم غرف الأطفال', desc:'أوضة طفلك آمنة ومبهجة', count:4},
+    {id:'sofa', name:'الأنتريهات', desc:'أحدث موديلات الأنتريهات', count:4},
+    {id:'corner', name:'الركنات', desc:'ركنات مودرن', count:4},
+    {id:'dining', name:'غرف السفرة', desc:'سفرة تشرفك', count:4},
+    {id:'chair', name:'كرسي وشازلونج', desc:'كراسي مريحة', count:3},
+    {id:'arabic', name:'المجالس العربية', desc:'مجالس أصيلة', count:3},
+    {id:'steps', name:'مراحل التصنيع', desc:'مراحل التصنيع', count:3},
+    {id:'real', name:'شغلنا على الطبيعة', desc:'شغل حقيقي', count:4}
+  ]
+};
+function getPassword(){ return localStorage.getItem('ghareeb_admin_pass') || '1234'; }
+function checkPass(){
+  if(document.getElementById('pass').value===getPassword()){
+    document.getElementById('loginBox').style.display='none';
+    document.getElementById('panel').style.display='block';
+    build();
+  } else alert('الباسورد غلط');
+}
+function build(){
+  const tabs=document.getElementById('tabs');
+  const secs=document.getElementById('sections');
+  const allTabs = [
+    {id:'hero', name:'🏠 النص الترحيبي'},
+    {id:'contacts', name:'📍 العناوين'},
+    {id:'social', name:'🔗 السوشيال'},
+    ...data.categories.map(c=>({id:c.id, name:'📦 '+c.name})),
+    {id:'settings', name:'🔑 تغيير الباسورد'},
+    {id:'add', name:'➕ قسم جديد'}
+  ];
+  allTabs.forEach((t,i)=>{
+    const tab=document.createElement('div');
+    tab.className='tab'+(i===0?' active':'');
+    tab.textContent=t.name;
+    tab.onclick=()=>show(t.id);
+    tabs.appendChild(tab);
+    const sec=document.createElement('div');
+    sec.className='section'+(i===0?' active':'');
+    sec.id='sec-'+t.id;
+    secs.appendChild(sec);
+  });
+  document.getElementById('sec-hero').innerHTML=`<div class="card"><h3>🏠 النص الترحيبي في أول الموقع - الزائر يشوفه عرض فقط</h3>
+  <label style="color:var(--gold);font-size:11px">العنوان الرئيسي</label><input class="full-input" value="${data.hero.title}">
+  <label style="color:var(--gold);font-size:11px">العنوان الفرعي</label><input class="full-input" value="${data.hero.subtitle}">
+  <label style="color:var(--gold);font-size:11px">الوصف</label><textarea class="full-input" style="height:80px">${data.hero.desc}</textarea>
+  <button class="btn">💾 حفظ النص الترحيبي</button>
+  <p class="note">هذا النص يظهر للزائر في أول الموقع كعرض فقط - الزائر لا يستطيع تعديله - التعديل من هنا فقط بباسورد</p></div>`;
+
+  document.getElementById('sec-contacts').innerHTML=`<div class="card"><h3>📍 العناوين والأرقام</h3>
+  <div class="flex2">
+  <div><label style="color:var(--gold);font-size:11px">عنوان المصنع</label><input class="full-input" value="${data.contacts.factory}"></div>
+  <div><label style="color:var(--gold);font-size:11px">عنوان الورشة</label><input class="full-input" value="${data.contacts.workshop}"></div>
+  <div><label style="color:var(--gold);font-size:11px">رقم الاتصال 011</label><input class="full-input" value="${data.contacts.phone}"></div>
+  <div><label style="color:var(--gold);font-size:11px">واتساب بيزنس 010</label><input class="full-input" value="${data.contacts.whatsapp}"></div>
+  </div>
+  <button class="btn">💾 حفظ العناوين</button></div>`;
+
+  document.getElementById('sec-social').innerHTML=`<div class="card"><h3>🔗 روابط السوشيال ميديا - مربوطة 100% - تفتح صفحاتك الخاصة</h3>
+  <label style="color:var(--gold);font-size:11px">واتساب بيزنس 01012111519 - https://wa.me/201012111519</label><input class="full-input" value="${data.social.wa}">
+  <label style="color:var(--gold);font-size:11px">فيسبوك - https://www.facebook.com/share/1bTXadNvv8/</label><input class="full-input" value="${data.social.fb}">
+  <label style="color:var(--gold);font-size:11px">انستغرام - https://www.instagram.com/algharibfurniture</label><input class="full-input" value="${data.social.ig}">
+  <label style="color:var(--gold);font-size:11px">تيك توك - https://www.tiktok.com/@algharibfurniture.eg</label><input class="full-input" value="${data.social.tt}">
+  <button class="btn">💾 حفظ الروابط</button>
+  <p class="note">الزائر عندما يدوس على أي أيقونة في موقعك سيذهب مباشرة لصفحتك الخاصة - ليست صفحة عامة</p></div>`;
+
+  data.categories.forEach(cat=>{
+    const sec=document.getElementById('sec-'+cat.id);
+    sec.innerHTML=`<div class="card"><h3>${cat.name} <button class="btn" style="width:auto;padding:4px 12px;font-size:10px" onclick="addProduct('${cat.id}')">+ إضافة منتج</button></h3>
+    <label style="color:var(--gold);font-size:11px">اسم القسم</label><input class="full-input" value="${cat.name}">
+    <label style="color:var(--gold);font-size:11px">وصف القسم</label><textarea class="full-input">${cat.desc}</textarea>
+    <div class="grid" id="grid-${cat.id}"></div>
+    <button class="btn">💾 حفظ القسم</button>
+    <p class="note">الزائر يشوف المنتجات كعرض فقط - لا يستطيع تغيير سعر أو صورة - التعديل من هنا فقط</p></div>`;
+    const grid=sec.querySelector('.grid');
+    for(let j=1;j<=cat.count;j++){
+      const item=document.createElement('div');
+      item.className='item';
+      item.innerHTML=`<img src="" id="img-${cat.id}-${j}"><input type="file" accept="image/*" onchange="preview(this,'img-${cat.id}-${j}')"><input type="text" placeholder="اسم المنتج ${j}"><input type="text" placeholder="نوع الخشب"><input type="text" placeholder="المقاس"><input type="text" placeholder="السعر"><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px"><button class="btn">حفظ</button><button class="btn btn-danger" onclick="this.closest('.item').remove()">حذف</button></div>`;
+      grid.appendChild(item);
+    }
+  });
+
+  document.getElementById('sec-settings').innerHTML=`<div class="card"><h3>🔑 تغيير باسورد لوحة التحكم</h3>
+  <p style="color:#888;font-size:12px;margin-bottom:15px">الباسورد الحالي: <b style="color:var(--gold)" id="currentPassDisplay"></b></p>
+  <label style="color:var(--gold);font-size:11px">الباسورد الحالي</label><input class="full-input" type="password" id="oldPass" placeholder="اكتب الباسورد الحالي">
+  <label style="color:var(--gold);font-size:11px">الباسورد الجديد</label><input class="full-input" type="password" id="newPass" placeholder="اكتب الباسورد الجديد">
+  <label style="color:var(--gold);font-size:11px">تأكيد الباسورد الجديد</label><input class="full-input" type="password" id="confirmPass" placeholder="أعد كتابة الباسورد الجديد">
+  <button class="btn" onclick="changePassword()">💾 تغيير الباسورد</button>
+  <p class="note">⚠️ احفظ الباسورد الجديد - لو نسيته افتح ملف admin_advanced.html وغير السطر getPassword</p>
+  </div>`;
+
+  document.getElementById('sec-add').innerHTML=`<div class="card"><h3>➕ إضافة قسم جديد</h3>
+  <p style="color:#888;font-size:12px;margin-bottom:10px">مثال: قسم المطابخ - قسم الديكورات</p>
+  <input class="full-input" id="newSecName" placeholder="اسم القسم الجديد">
+  <textarea class="full-input" placeholder="وصف القسم الجديد"></textarea>
+  <button class="btn" onclick="addNewSection()">➕ إضافة القسم</button></div>`;
+}
+function show(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  const allIds = ['hero','contacts','social',...data.categories.map(c=>c.id),'settings','add'];
+  const index = allIds.indexOf(id);
+  if(index>=0) document.getElementById('tabs').children[index].classList.add('active');
+  if(id==='settings'){ document.getElementById('currentPassDisplay').textContent=getPassword(); }
+}
+function preview(input, imgId){
+  if(input.files && input.files[0]){
+    const r=new FileReader();
+    r.onload=e=>document.getElementById(imgId).src=e.target.result;
+    r.readAsDataURL(input.files[0]);
+  }
+}
+function addProduct(catId){
+  const grid=document.getElementById('grid-'+catId);
+  const item=document.createElement('div');
+  item.className='item';
+  item.innerHTML=`<img src=""><input type="file" accept="image/*"><input type="text" placeholder="اسم المنتج الجديد"><input type="text" placeholder="نوع الخشب"><input type="text" placeholder="المقاس"><input type="text" placeholder="السعر"><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px"><button class="btn">حفظ</button><button class="btn btn-danger" onclick="this.closest('.item').remove()">حذف</button></div>`;
+  grid.appendChild(item);
+}
+function changePassword(){
+  const oldP = document.getElementById('oldPass').value;
+  const newP = document.getElementById('newPass').value;
+  const confP = document.getElementById('confirmPass').value;
+  const current = getPassword();
+  if(oldP !== current){ alert('❌ الباسورد الحالي غلط'); return; }
+  if(!newP || newP.length < 4){ alert('❌ الباسورد الجديد لازم 4 أحرف على الأقل'); return; }
+  if(newP !== confP){ alert('❌ تأكيد الباسورد غير مطابق'); return; }
+  localStorage.setItem('ghareeb_admin_pass', newP);
+  document.getElementById('currentPassDisplay').textContent = newP;
+  alert('✅ تم تغيير الباسورد بنجاح إلى: ' + newP);
+  document.getElementById('oldPass').value='';document.getElementById('newPass').value='';document.getElementById('confirmPass').value='';
+}
+function addNewSection(){
+  const name=document.getElementById('newSecName').value;
+  if(!name){ alert('اكتب اسم القسم أولا'); return; }
+  alert('✅ تم إضافة قسم: '+name);
+}
+</script>
+</body>
+</html>
